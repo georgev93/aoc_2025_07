@@ -53,6 +53,7 @@ pub struct Tachyon {
     grid: Vec<Vec<Option<Node>>>,
     cols_out: Vec<bool>,
     btree_nodes: BTreeSet<Coord>,
+    start: Coord,
     pub splits: u64,
 }
 
@@ -62,6 +63,7 @@ impl Tachyon {
         let rows = input_in_rows.len();
         let cols = input_in_rows[0].len();
         let mut btree_nodes: BTreeSet<Coord> = BTreeSet::new();
+        let mut start: Option<Coord> = None;
 
         let mut new_grid: Vec<Vec<Option<Node>>> = vec![vec![None; cols]; rows];
         for row in 0..rows {
@@ -70,7 +72,7 @@ impl Tachyon {
                 match row_str[col] as char {
                     'S' => {
                         new_grid[row][col] = Some(Node::new_starter((row, col)));
-                        btree_nodes.insert((row, col));
+                        start = Some((row, col));
                     }
                     '^' => {
                         new_grid[row][col] = Some(Node::new_splitter((row, col)));
@@ -84,17 +86,18 @@ impl Tachyon {
             grid: new_grid,
             cols_out: vec![false; cols],
             btree_nodes,
+            start: start.unwrap(),
             splits: 0,
         }
     }
 
     pub fn execute_round(&mut self) {
-        let btree_clone = self.btree_nodes.clone();
-        for coord in btree_clone {
-            self.fire(coord);
-        }
-        if !self.btree_nodes.is_empty() {
-            self.execute_round();
+        self.fire(self.start);
+        while !self.btree_nodes.is_empty() {
+            let btree_clone = self.btree_nodes.clone();
+            for coord in btree_clone {
+                self.split(coord);
+            }
         }
     }
 
@@ -109,18 +112,34 @@ impl Tachyon {
     }
 
     fn fire(&mut self, origin: Coord) {
-        self.btree_nodes.remove(&origin);
-
-        for i in origin.0..self.grid.len() {
-            if let Some(detected_node) = &mut self.grid[i][origin.1]
-                && detected_node.energize()
-            {
-                self.splits += 1;
-                self.btree_nodes.insert((i, origin.1 - 1));
-                self.btree_nodes.insert((i, origin.1 + 1));
+        for row in (origin.0 + 1)..self.grid.len() {
+            if let Some(detected_node) = &mut self.grid[row][origin.1] {
+                if detected_node.energize() {
+                    self.btree_nodes.insert((row, origin.1));
+                }
                 return;
             }
         }
         self.cols_out[origin.1] = true;
     }
+
+    fn split(&mut self, origin: Coord) {
+        self.btree_nodes.remove(&origin);
+        if !self.grid[origin.0][origin.1].unwrap().execute() {
+            return;
+        }
+
+        self.splits += 1;
+
+        self.fire((origin.0, origin.1 - 1));
+        self.fire((origin.0, origin.1 + 1));
+    }
 }
+
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//
+//     #[test]
+//     fn quick() {}
+// }

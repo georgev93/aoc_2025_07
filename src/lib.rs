@@ -32,9 +32,9 @@ pub fn solve(input_file: &str) -> (u64, u64) {
 mod tests {
     use super::*;
 
-    const EXAMPLE_PT1: u64 = 21; // 21
+    const EXAMPLE_PT1: u64 = 21;
     const EXAMPLE_PT2: u64 = 0;
-    const ACTUAL_PT1: u64 = 1706; //1706 too high!
+    const ACTUAL_PT1: u64 = 1619;
     const ACTUAL_PT2: u64 = 0;
 
     #[test]
