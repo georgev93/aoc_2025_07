@@ -1,0 +1,126 @@
+use std::cmp::Ordering;
+use std::{collections::BTreeSet, io::Split};
+
+// Y, THEN X
+type Coord = (usize, usize);
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum SplitterState {
+    Ready,
+    Energized,
+    Spent,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct Node {
+    pub coord: Coord,
+    state: SplitterState,
+}
+
+impl Node {
+    fn new_splitter(coord: Coord) -> Self {
+        Self {
+            coord,
+            state: SplitterState::Ready,
+        }
+    }
+
+    fn new_starter(coord: Coord) -> Self {
+        Self {
+            coord,
+            state: SplitterState::Energized,
+        }
+    }
+
+    fn execute(&mut self) -> bool {
+        if self.state == SplitterState::Energized {
+            self.state = SplitterState::Spent;
+            return true;
+        }
+        false
+    }
+
+    fn energize(&mut self) -> bool {
+        if self.state == SplitterState::Ready {
+            self.state = SplitterState::Energized;
+            return true;
+        }
+        false
+    }
+}
+
+pub struct Tachyon {
+    grid: Vec<Vec<Option<Node>>>,
+    cols_out: Vec<bool>,
+    btree_nodes: BTreeSet<Coord>,
+    pub splits: u64,
+}
+
+impl Tachyon {
+    pub fn new(input: &str) -> Self {
+        let input_in_rows: Vec<&str> = input.lines().collect();
+        let rows = input_in_rows.len();
+        let cols = input_in_rows[0].len();
+        let mut btree_nodes: BTreeSet<Coord> = BTreeSet::new();
+
+        let mut new_grid: Vec<Vec<Option<Node>>> = vec![vec![None; cols]; rows];
+        for row in 0..rows {
+            let row_str = input_in_rows[row].as_bytes();
+            for col in 0..cols {
+                match row_str[col] as char {
+                    'S' => {
+                        new_grid[row][col] = Some(Node::new_starter((row, col)));
+                        btree_nodes.insert((row, col));
+                    }
+                    '^' => {
+                        new_grid[row][col] = Some(Node::new_splitter((row, col)));
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        Self {
+            grid: new_grid,
+            cols_out: vec![false; cols],
+            btree_nodes,
+            splits: 0,
+        }
+    }
+
+    pub fn execute_round(&mut self) {
+        let btree_clone = self.btree_nodes.clone();
+        for coord in btree_clone {
+            self.fire(coord);
+        }
+        if !self.btree_nodes.is_empty() {
+            self.execute_round();
+        }
+    }
+
+    pub fn get_outputs(&self) -> u64 {
+        let mut counter = 0u64;
+        for col in &self.cols_out {
+            if *col {
+                counter += 1;
+            }
+        }
+        counter
+    }
+
+    fn fire(&mut self, origin: Coord) {
+        self.btree_nodes.remove(&origin);
+
+        for i in origin.0..self.grid.len() {
+            if let Some(detected_node) = &mut self.grid[i][origin.1]
+                && detected_node.energize()
+            {
+                self.splits += 1;
+                self.btree_nodes.insert((i, origin.1 - 1));
+                self.btree_nodes.insert((i, origin.1 + 1));
+                return;
+            }
+        }
+        self.cols_out[origin.1] = true;
+    }
+}

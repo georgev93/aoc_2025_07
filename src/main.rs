@@ -1,4 +1,4 @@
-use aoc_2025_xx::{file_parser::FileParser, solve, solve_pt1, solve_pt2};
+use aoc_2025_07::{file_parser::FileParser, solve, solve_pt1, solve_pt2};
 
 fn main() {
     let my_file = FileParser::new("data/input.txt");

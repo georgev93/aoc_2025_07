@@ -8,8 +8,13 @@ use std::thread;
 pub mod file_parser;
 use crate::file_parser::FileParser;
 
+mod tachyon;
+use crate::tachyon::Tachyon;
+
 pub fn solve_pt1(input_file: &str) -> u64 {
-    0
+    let mut tachyon = Tachyon::new(input_file);
+    tachyon.execute_round();
+    tachyon.splits
 }
 
 pub fn solve_pt2(input_file: &str) -> u64 {
@@ -17,16 +22,19 @@ pub fn solve_pt2(input_file: &str) -> u64 {
 }
 
 pub fn solve(input_file: &str) -> (u64, u64) {
-    (0, 0)
+    let mut tachyon = Tachyon::new(input_file);
+    tachyon.execute_round();
+    tachyon.get_outputs();
+    (tachyon.splits, 0)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    const EXAMPLE_PT1: u64 = 0;
+    const EXAMPLE_PT1: u64 = 21; // 21
     const EXAMPLE_PT2: u64 = 0;
-    const ACTUAL_PT1: u64 = 0;
+    const ACTUAL_PT1: u64 = 1706; //1706 too high!
     const ACTUAL_PT2: u64 = 0;
 
     #[test]

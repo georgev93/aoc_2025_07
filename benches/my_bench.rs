@@ -1,4 +1,4 @@
-use aoc_2025_xx::{file_parser::FileParser, solve, solve_pt1, solve_pt2};
+use aoc_2025_07::{file_parser::FileParser, solve, solve_pt1, solve_pt2};
 use criterion::{Criterion, criterion_group, criterion_main};
 
 fn bench_solve(c: &mut Criterion) {
