@@ -52,7 +52,7 @@ impl Node {
 pub struct Tachyon {
     grid: Vec<Vec<Option<Node>>>,
     cols_out: Vec<bool>,
-    btree_nodes: BTreeSet<Coord>,
+    nodes_to_be_evaluated: Vec<Coord>,
     start: Coord,
     pub splits: u64,
 }
@@ -62,7 +62,6 @@ impl Tachyon {
         let input_in_rows: Vec<&str> = input.lines().collect();
         let rows = input_in_rows.len();
         let cols = input_in_rows[0].len();
-        let mut btree_nodes: BTreeSet<Coord> = BTreeSet::new();
         let mut start: Option<Coord> = None;
 
         let mut new_grid: Vec<Vec<Option<Node>>> = vec![vec![None; cols]; rows];
@@ -85,7 +84,7 @@ impl Tachyon {
         Self {
             grid: new_grid,
             cols_out: vec![false; cols],
-            btree_nodes,
+            nodes_to_be_evaluated: Vec::with_capacity(rows * cols),
             start: start.unwrap(),
             splits: 0,
         }
@@ -93,11 +92,9 @@ impl Tachyon {
 
     pub fn execute_round(&mut self) {
         self.fire(self.start);
-        while !self.btree_nodes.is_empty() {
-            let btree_clone = self.btree_nodes.clone();
-            for coord in btree_clone {
-                self.split(coord);
-            }
+        while !self.nodes_to_be_evaluated.is_empty() {
+            let coord = self.nodes_to_be_evaluated.pop().unwrap();
+            self.split(coord);
         }
     }
 
@@ -115,7 +112,7 @@ impl Tachyon {
         for row in (origin.0 + 1)..self.grid.len() {
             if let Some(detected_node) = &mut self.grid[row][origin.1] {
                 if detected_node.energize() {
-                    self.btree_nodes.insert((row, origin.1));
+                    self.nodes_to_be_evaluated.insert(0, (row, origin.1));
                 }
                 return;
             }
@@ -124,7 +121,6 @@ impl Tachyon {
     }
 
     fn split(&mut self, origin: Coord) {
-        self.btree_nodes.remove(&origin);
         if !self.grid[origin.0][origin.1].unwrap().execute() {
             return;
         }
