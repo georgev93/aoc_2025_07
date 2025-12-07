@@ -84,7 +84,7 @@ impl Tachyon {
         Self {
             grid: new_grid,
             cols_out: vec![false; cols],
-            nodes_to_be_evaluated: Vec::with_capacity(rows * cols),
+            nodes_to_be_evaluated: Vec::with_capacity(rows * cols / 4),
             start: start.unwrap(),
             splits: 0,
         }
@@ -93,8 +93,11 @@ impl Tachyon {
     pub fn execute_round(&mut self) {
         self.fire(self.start);
         while !self.nodes_to_be_evaluated.is_empty() {
-            let coord = self.nodes_to_be_evaluated.pop().unwrap();
-            self.split(coord);
+            let coord_vec_clone = self.nodes_to_be_evaluated.clone();
+            self.nodes_to_be_evaluated.clear();
+            for coord in coord_vec_clone {
+                self.split(coord);
+            }
         }
     }
 
