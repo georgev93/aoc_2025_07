@@ -1,0 +1,7 @@
+- Time to complete: > 3 hours
+- Speed-optimized runtime: (criterion benchmark)
+  - Combined: 407us
+  - Part 1: 167us
+  - Part 2: 204us
+- Speed-optimized max heap: 1.32MB (`valgrind --trace-children=yes --tool=massif [PROG] && ms_print massif.out.* | head -40`)
+- Size-optimized executable size: 316kB
